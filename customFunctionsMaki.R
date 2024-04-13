@@ -819,6 +819,293 @@ MakiCV <- function(data, mod_func, fam="gaussian", it=1e6, k=5, rept=3, params, 
   }
 }
 
+######## MakiCV.nlme() ###########
+#' created by Marvin Kiene, use this function at own risk!
+#' @description
+#' For cross validation we split the dataset into k parts. 
+#' Then iterating over these parts, each time using k-1 parts for 
+#' model creation and one part for testing Brier score. 
+#' Brier score will be our criterion in case of binomial models.
+#' RMSE is the criterion in case of other distributions.
+#' The data are splitted randomly. Therefore, it is recommended not to use this function
+#' with small datasets with a lot of levels. However, setting k = nrow(data) and rept = 1
+#' will perform a leave-one-out cross validation (LOOCV), which might be the better choice
+#' for small datasets. But consider, that LOOCV is computaionally intense.
+#' 
+#' @param data a data set to operate with
+#' @param mod_func function to be used for modelling. Currently possible model functions are: mgcv::gamm
+#' @param fam family to be used for the model (has to be provided as used in model function)
+#' @param k determine k-fold cross validation (in how many parts the data set should be splitted)
+#' @param rept repetitions for the k-fold cross validation
+#' @param params.fixed parameterisation of fixed terms (including smooths) and random effects in case of lme4 models (except gamm4)
+#' @param params.rdm random terms, for nlme models (have to be provided as for model function necessary)
+#' @param it number of max iterations (for maxfun)
+#' @param response response variable for prediction
+#' @param setseed whether to set a seed or not. If T, outcome will be reproducible. Else sampling is random each time. Defaults to F.
+#' 
+#' @return returns an object with summary and score values of each model run and cross check
+#' @export
+#'
+MakiCV.nlme <- function(data, 
+                        mod_func, 
+                        fam="gaussian", 
+                        it=1e6, 
+                        k=5, 
+                        rept=3, 
+                        params.fixed, 
+                        params.rdm = "", 
+                        response, 
+                        correlation = FALSE, 
+                        weights = FALSE, 
+                        setseed=F){
+  
+  if(setseed == T){set.seed(42)}
+  
+  # for cross validation we split the dataset into 5 parts. Then iterating over these parts, each time using 4 parts for model creation and one part for testing Brier score. Brier score will be our criterion in case of binomial models.
+  # The goal is a k-fold cross validation with rept repeats.
+  
+  # check which model function should be used and then use the respective cv-algorythm
+  # currently possible: gamm4, glmer
+  
+  # check whether selected function can be performed
+  if(#mod_func == "lme" || 
+     #mod_func == "gls" || 
+     #mod_func == "gam" || 
+     mod_func == "gamm"
+     ){
+    # data frame to store scores after model creation and prediction
+    bs <- data.frame(x = NA)
+    # get the full data set line numbers in a vector
+    datafull <- sample(nrow(data), nrow(data))
+    
+    # vectors for summary values (means and SDs)
+    statmeans <- c()
+    statsds <- c()
+    
+    #### Data splitting #####
+    for(h in 1:rept){
+      
+      # randomly split dataset into k parts
+      # list to save the splitted dataset
+      obj <- list()
+      samples <- matrix(nrow= floor(nrow(data)/k), ncol= k)
+      obj$samples <- samples
+      
+      # vector of line numbers that are used in other parts of the splitted data set
+      notuseln <- c()
+      
+      # iterate over k and save line numbers of splitted data set into obj
+      for(i in 1:k){
+        
+        #check which lines are already used and which are still to be used
+        for(j in 1:i){
+          if(i == 1){} # do nothing in the first iteration (no data selected)
+          else{ # get line numbers that are used so far
+            notuseln <- c(notuseln, obj$samples[,j])
+          }
+        }
+        # get line numbers of one part of the splitted data set
+        # check which lines are already used
+        obj$samples[,i] <- sample(setdiff(datafull, 
+                                          notuseln), 
+                                  floor(nrow(data)/k)
+        )
+      }# end for i
+      
+      # add a column for current repetition to bs
+      bsrep <- c() 
+      
+      #### iteration over k models
+      # iterate over k, create a model using k-1 subsamples and predict with the left subsample to calculate Brier score
+      for(i in 1:k){
+        
+        # provide info on progress
+        cat("Progress of cross validation:", (((i-1)+k*(h-1))/(k*rept))*100, "% \n")
+        
+        # get data of k-1 of the subsamples for model creation/training by leaving out the kth subsample
+        moddata <- data[-c(obj$samples[,i]),]
+        
+        ##### gamm ########
+        if(mod_func == "gamm"){
+          # run/create model
+          # I have to check whether correlations or weights are included. Otherwise the models don't work with empty parameters
+          if(correlation == FALSE && weights == FALSE){
+            mod.cv <- mgcv::gamm(params.fixed,
+                                   random = params.rdm,
+                                   data = moddata, 
+                                   family = fam, 
+                                   method = "REML",
+                                  control=mgcv::gam.control(maxit = it))
+          }
+          else if(correlation != FALSE && weights == FALSE){
+            mod.cv <- mgcv::gamm(params.fixed,
+                                 random = params.rdm,
+                                 data = moddata, 
+                                 family = fam, 
+                                 method = "REML",
+                                 correlation = correlation,
+                                 control=mgcv::gam.control(maxit = it))
+          }
+          else if(correlation == FALSE && weights != FALSE){
+            mod.cv <- mgcv::gamm(params.fixed,
+                                 random = params.rdm,
+                                 data = moddata, 
+                                 family = fam, 
+                                 method = "REML",
+                                 weights = weights,
+                                 control=mgcv::gam.control(maxit = it))
+          }
+          else{ # correlation and weights != FALSE
+            mod.cv <- mgcv::gamm(params.fixed,
+                                 random = params.rdm,
+                                 data = moddata, 
+                                 family = fam, 
+                                 method = "REML",
+                                 weights = weights,
+                                 correlation = correlation,
+                                 control=mgcv::gam.control(maxit = it))
+          }
+          
+          
+          
+          # make prediction with this model, but with the leftover data set
+          testdata <- data[obj$samples[,i],]
+          fit.cv = predict(mod.cv$gam, newdata = testdata, type = 'response', se.fit = FALSE)
+          
+          if(fam == "binomial"){ # if binomial, calculate Brier score
+            # calculate Brier score Brier score for this prediction 
+            # Bier score = mean((pred.prob-event_success_bin)^2)
+            # following https://stackoverflow.com/questions/25149023/how-to-find-the-brier-score-of-a-logistic-regression-model-in-r
+            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2))
+          }
+          else{ # else calculate RMSE
+            # RSME = sqrt(mean((fitted-observed)^2))
+            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
+          }  
+          
+        } # end if(mod_func == "gamm")
+        ##### glmer or lmer ######
+        if(mod_func == "glmer" || mod_func == "lmer"){
+          # run model
+          if(fam == "gaussian" || mod_func == "lmer"){
+            mod.cv <- lme4::lmer(paramFixed,
+                                 data = moddata,
+                                 control=lme4::lmerControl(optCtrl=list(maxfun = it)))
+          }
+          else{
+            mod.cv <- lme4::glmer(paramFixed,
+                                  data = moddata, family = fam,
+                                  control=lme4::glmerControl(optCtrl=list(maxfun = it)))
+          }
+          # make prediction with this model, but with the leftover data set
+          testdata <- data[obj$samples[,i],]
+          #cat("predict")
+          fit.cv = predict(mod.cv, newdata = testdata, allow.new.levels = TRUE, type = 'response', se.fit = FALSE)
+          
+          #### calculate and gather scores for k-folds #####
+          if(fam == "binomial"){ # if binomial, calculate Brier score
+            # calculate Brier score Brier score for this prediction 
+            # Bier score = mean((pred.prob-event_success_bin)^2)
+            # following https://stackoverflow.com/questions/25149023/how-to-find-the-brier-score-of-a-logistic-regression-model-in-r
+            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2))
+          }
+          else{ # else calculate RMSE
+            # RSME = sqrt(mean((fitted-observed)^2))
+            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
+          }  
+        } # end if(mod_func == "glmer" || mod_func == "lmer")  
+        ##### lm or glm ######
+        if(mod_func == "glm" || mod_func == "lm"){
+          # run model
+          if(fam == "gaussian" || mod_func == "lm"){
+            mod.cv <- lm(paramFixed,
+                         data = moddata,
+                         control = list(maxit = it, epsilon=1))
+          }
+          else{
+            mod.cv <- glm(paramFixed,
+                          data = moddata, family = fam,
+                          control = list(maxit = it, epsilon=1))
+          }
+          # make prediction with this model, but with the leftover data set
+          testdata <- data[obj$samples[,i],]
+          cat("predict")
+          fit.cv = predict(mod.cv, newdata = testdata, allow.new.levels = TRUE, type = 'response', se.fit = FALSE)
+          
+          #### calculate and gather scores for k-folds #####
+          if(fam == "binomial"){ # if binomial, calculate Brier score
+            # calculate Brier score Brier score for this prediction 
+            # Bier score = mean((pred.prob-event_success_bin)^2)
+            # following https://stackoverflow.com/questions/25149023/how-to-find-the-brier-score-of-a-logistic-regression-model-in-r
+            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2))
+          }
+          else{ # else calculate RMSE
+            # RSME = sqrt(mean((fitted-observed)^2))
+            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
+          }  
+        } # end if(mod_func == "glmer" || mod_func == "lmer")  
+      }# end i
+      
+      ### gather values of rept ####  
+      # bind values together in data frame and rename added column
+      bs <- cbind(bs, bsrep)
+      colnames(bs)[which(colnames(bs) == "bsrep")] <- c(paste("rep", h, sep=""))
+      
+    }# end h
+    
+    bs$x <- NULL
+    
+    ##### create an object summarizing the performed CV and values #####
+    summarycv <- list()
+    summarycv$cvInfo <- paste(k,"-fold cross validation with ", rept, " repeats", sep="")
+    summarycv$modInfo <- paste("Using model ", mod_func, " with family = ", fam, sep="")
+    if(fam == "binomial"){
+      summarycv$scoreInfo <- paste("For ", fam, " models, Brier score is used as criterion.", sep="")
+    }
+    else{
+      summarycv$scoreInfo <- paste("For ", fam, " models, RMSE is used as criterion.", sep="")
+    }
+    statsum <- data.frame(repetition = colnames(bs), mean = NA, sd = NA)
+    for(i in 1:rept){
+      statsum$mean[i] <- mean(bs[, i])
+      statsum$sd[i] <- sd(bs[, i])
+    }
+    summarycv$statSummary <- statsum
+    summarycv$cvResults <- bs
+    fullmean <- mean(t(summarycv$cvResults))
+    fullsd <- sd(t(summarycv$cvResults))
+    if(fam == "binomial"){
+      summarycv$summaryInfo <- paste("Over all runs, the model had a mean acuracy of ", 
+                                     round((1-(fullmean*2))*100, digits = 2),
+                                     " % (Brier score of ",
+                                     round(fullmean, digits = 4),
+                                     ") and a standard deviation of ",
+                                     round(fullsd*2*100, digits = 2),
+                                     " % (SD of Brier score of ",
+                                     round(fullsd, digits = 4),
+                                     ")",
+                                     sep="")
+    }
+    else{
+      summarycv$summaryInfo <- paste("Over all runs, the model had a mean RMSE of ",
+                                     round(fullmean, digits = 4),
+                                     " and a standard deviation of RMSE of ",
+                                     round(fullsd, digits = 4),
+                                     ")",
+                                     sep="")
+    }
+    
+    cat(crayon::blue("100 % done!"))
+    return(summarycv)
+    
+  } # if(mod_func == ...)
+  else{
+    
+    cat(crayon::red("ERROR: The selected model function is not available or misspelled."))
+    
+  }
+}
+
 
 
 ######## get_thresholds() ###########
