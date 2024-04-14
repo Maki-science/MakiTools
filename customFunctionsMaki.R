@@ -689,11 +689,12 @@ MakiCV <- function(data, mod_func, fam="gaussian", it=1e6, k=5, rept=3, params, 
             # calculate Brier score Brier score for this prediction 
             # Bier score = mean((pred.prob-event_success_bin)^2)
             # following https://stackoverflow.com/questions/25149023/how-to-find-the-brier-score-of-a-logistic-regression-model-in-r
-            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2))
+            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE))
+            #TODO: check whether NAs were there and send a note to the console
           }
           else{ # else calculate RMSE
             # RSME = sqrt(mean((fitted-observed)^2))
-            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
+            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE)))
           }  
           
         } # end if(mod_func == "gamm4")
@@ -720,11 +721,11 @@ MakiCV <- function(data, mod_func, fam="gaussian", it=1e6, k=5, rept=3, params, 
             # calculate Brier score Brier score for this prediction 
             # Bier score = mean((pred.prob-event_success_bin)^2)
             # following https://stackoverflow.com/questions/25149023/how-to-find-the-brier-score-of-a-logistic-regression-model-in-r
-            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2))
+            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE))
           }
           else{ # else calculate RMSE
             # RSME = sqrt(mean((fitted-observed)^2))
-            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
+            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE)))
           }  
         } # end if(mod_func == "glmer" || mod_func == "lmer")  
         ##### lm or glm ######
@@ -750,11 +751,11 @@ MakiCV <- function(data, mod_func, fam="gaussian", it=1e6, k=5, rept=3, params, 
             # calculate Brier score Brier score for this prediction 
             # Bier score = mean((pred.prob-event_success_bin)^2)
             # following https://stackoverflow.com/questions/25149023/how-to-find-the-brier-score-of-a-logistic-regression-model-in-r
-            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2))
+            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE))
           }
           else{ # else calculate RMSE
             # RSME = sqrt(mean((fitted-observed)^2))
-            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
+            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE)))
           }  
         } # end if(mod_func == "glmer" || mod_func == "lmer")  
       }# end i
