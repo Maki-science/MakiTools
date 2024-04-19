@@ -834,7 +834,7 @@ MakiCV <- function(data, mod_func, fam="gaussian", it=1e6, k=5, rept=3, params, 
 #' for small datasets. But consider, that LOOCV is computaionally intense.
 #' 
 #' @param data a data set to operate with
-#' @param mod_func function to be used for modelling. Currently possible model functions are: mgcv::gamm
+#' @param mod_func function to be used for modelling. Currently possible model functions are: mgcv::gamm, mgcv::gam
 #' @param fam family to be used for the model (has to be provided as used in model function)
 #' @param k determine k-fold cross validation (in how many parts the data set should be splitted)
 #' @param rept repetitions for the k-fold cross validation
@@ -871,7 +871,7 @@ MakiCV.nlme <- function(data,
   # check whether selected function can be performed
   if(#mod_func == "lme" || 
      #mod_func == "gls" || 
-     #mod_func == "gam" || 
+     mod_func == "gam" || 
      mod_func == "gamm"
      ){
     # data frame to store scores after model creation and prediction
@@ -985,19 +985,40 @@ MakiCV.nlme <- function(data,
           }  
           
         } # end if(mod_func == "gamm")
-        ##### glmer or lmer ######
-        if(mod_func == "glmer" || mod_func == "lmer"){
+        ##### gam ######
+        if(mod_func == "gam"){
           # run model
-          if(fam == "gaussian" || mod_func == "lmer"){
-            mod.cv <- lme4::lmer(paramFixed,
-                                 data = moddata,
-                                 control=lme4::lmerControl(optCtrl=list(maxfun = it)))
+          # run/create model
+          # I have to check whether correlations or weights are included. Otherwise the models don't work with empty parameters
+          if(correlation == FALSE && weights == FALSE){
+            mod.cv <- mgcv::gam(params.fixed,
+                                 data = moddata, 
+                                 family = fam, 
+                                 control=mgcv::gam.control(maxit = it))
           }
-          else{
-            mod.cv <- lme4::glmer(paramFixed,
-                                  data = moddata, family = fam,
-                                  control=lme4::glmerControl(optCtrl=list(maxfun = it)))
+          else if(correlation != FALSE && weights == FALSE){
+            mod.cv <- mgcv::gam(params.fixed,
+                                 data = moddata, 
+                                 family = fam, 
+                                 correlation = correlation,
+                                 control=mgcv::gam.control(maxit = it))
           }
+          else if(correlation == FALSE && weights != FALSE){
+            mod.cv <- mgcv::gam(params.fixed,
+                                 data = moddata, 
+                                 family = fam, 
+                                 weights = weights,
+                                 control=mgcv::gam.control(maxit = it))
+          }
+          else{ # correlation and weights != FALSE
+            mod.cv <- mgcv::gam(params.fixed,
+                                 data = moddata, 
+                                 family = fam, 
+                                 weights = weights,
+                                 correlation = correlation,
+                                 control=mgcv::gam.control(maxit = it))
+          }
+          
           # make prediction with this model, but with the leftover data set
           testdata <- data[obj$samples[,i],]
           #cat("predict")
@@ -1014,7 +1035,7 @@ MakiCV.nlme <- function(data,
             # RSME = sqrt(mean((fitted-observed)^2))
             bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
           }  
-        } # end if(mod_func == "glmer" || mod_func == "lmer")  
+        } # end if(mod_func == "gam")  
         ##### lm or glm ######
         if(mod_func == "glm" || mod_func == "lm"){
           # run model
