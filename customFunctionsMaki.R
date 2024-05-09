@@ -935,7 +935,7 @@ MakiCV.nlme <- function(data,
                                    random = params.rdm,
                                    data = moddata, 
                                    family = fam, 
-                                   method = "REML",
+                                   #method = "REML",
                                   control=mgcv::gam.control(maxit = it))
           }
           else if(correlation != FALSE && weights == FALSE){
@@ -943,7 +943,7 @@ MakiCV.nlme <- function(data,
                                  random = params.rdm,
                                  data = moddata, 
                                  family = fam, 
-                                 method = "REML",
+                                 #method = "REML",
                                  correlation = correlation,
                                  control=mgcv::gam.control(maxit = it))
           }
@@ -952,7 +952,7 @@ MakiCV.nlme <- function(data,
                                  random = params.rdm,
                                  data = moddata, 
                                  family = fam, 
-                                 method = "REML",
+                                 #method = "REML",
                                  weights = weights,
                                  control=mgcv::gam.control(maxit = it))
           }
@@ -961,7 +961,7 @@ MakiCV.nlme <- function(data,
                                  random = params.rdm,
                                  data = moddata, 
                                  family = fam, 
-                                 method = "REML",
+                                 #method = "REML",
                                  weights = weights,
                                  correlation = correlation,
                                  control=mgcv::gam.control(maxit = it))
