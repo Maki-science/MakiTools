@@ -1022,8 +1022,23 @@ MakiCV.nlme <- function(data,
           # make prediction with this model, but with the leftover data set
           testdata <- data[obj$samples[,i],]
           #cat("predict")
-          fit.cv = predict(mod.cv, newdata = testdata, allow.new.levels = TRUE, type = 'response', se.fit = FALSE)
-          
+          # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
+          # Additonally, a warning message will be send out to the user.
+          tryCatch({
+            suppressWarnings(
+              fit.cv = predict(mod.cv, newdata = testdata, allow.new.levels = TRUE, type = 'response', se.fit = FALSE)
+            )
+          },
+          error = function(cond){
+            warning("A model did not converge or caused an error:")
+            warning(cond)
+            fit.cv <- rep(NA, nrow(testdata))
+          },
+          warning = function(cond){
+            warning("A model triggered a warning message:")
+            warning(cond)
+          })# end tryCatch
+
           #### calculate and gather scores for k-folds #####
           if(fam == "binomial"){ # if binomial, calculate Brier score
             # calculate Brier score Brier score for this prediction 
