@@ -946,13 +946,13 @@ MakiCV.nlme <- function(data,
               })
             },
             error = function(cond){
-              message("A model did not converge or caused an error:")
-              message(conditionMessage(cond))
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
               mod.cv <- NA
             },
             warning = function(cond){
-              message("A model triggered a warning message:")
-              message(conditionMessage(cond))
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
             })# end tryCatch
           }
           else if(correlation != "none" && weights == "none"){
@@ -970,13 +970,13 @@ MakiCV.nlme <- function(data,
               })
             },
             error = function(cond){
-              message("A model did not converge or caused an error:")
-              message(conditionMessage(cond))
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
               mod.cv <- NA
             },
             warning = function(cond){
-              message("A model triggered a warning message:")
-              message(conditionMessage(cond))
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
             })# end tryCatch
             
           }
@@ -995,13 +995,13 @@ MakiCV.nlme <- function(data,
               })
             },
             error = function(cond){
-              message("A model did not converge or caused an error:")
-              message(conditionMessage(cond))
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
               mod.cv <- NA
             },
             warning = function(cond){
-              message("A model triggered a warning message:")
-              message(conditionMessage(cond))
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
             })# end tryCatch
           }
           else{ # correlation and weights != FALSE
@@ -1020,13 +1020,13 @@ MakiCV.nlme <- function(data,
               })
             },
             error = function(cond){
-              message("A model did not converge or caused an error:")
-              message(conditionMessage(cond))
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
               mod.cv <- NA
             },
             warning = function(cond){
-              message("A model triggered a warning message:")
-              message(conditionMessage(cond))
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
             })# end tryCatch
           }
           
@@ -1044,12 +1044,12 @@ MakiCV.nlme <- function(data,
               })
             },
             error = function(cond){
-              message("The prediction triggered an error:")
-              message(conditionMessage(cond))
+              warning("The prediction triggered an error:")
+              warning(conditionMessage(cond))
             },
             warning = function(cond){
-              message("The prediction triggered a warning message:")
-              message(conditionMessage(cond))
+              warning("The prediction triggered a warning message:")
+              warning(conditionMessage(cond))
             })# end tryCatch
           }
           
@@ -1082,12 +1082,12 @@ MakiCV.nlme <- function(data,
               })
             },
             error = function(cond){
-              message("A model did not converge or caused an error:")
-              message(conditionMessage(cond))
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
             },
             warning = function(cond){
-              message("The model triggered a warning message:")
-              message(conditionMessage(cond))
+              warning("The model triggered a warning message:")
+              warning(conditionMessage(cond))
             })# end tryCatch
           }
           else if(correlation != "none" && weights == "none"){
@@ -1103,12 +1103,12 @@ MakiCV.nlme <- function(data,
               })
             },
             error = function(cond){
-              message("A model did not converge or caused an error:")
-              message(conditionMessage(cond))
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
             },
             warning = function(cond){
-              message("A model triggered a warning message:")
-              message(conditionMessage(cond))
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
             })# end tryCatch
           }
           else if(correlation == "none" && weights != "none"){
@@ -1124,12 +1124,12 @@ MakiCV.nlme <- function(data,
               })
             },
             error = function(cond){
-              message("A model did not converge or caused an error:")
-              message(conditionMessage(cond))
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
             },
             warning = function(cond){
-              message("A model triggered a warning message:")
-              message(conditionMessage(cond))
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
             })# end tryCatch
           }
           else{ # correlation and weights != FALSE
@@ -1146,12 +1146,12 @@ MakiCV.nlme <- function(data,
               })
             },
             error = function(cond){
-              message("A model did not converge or caused an error:")
-              message(conditionMessage(cond))
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
             },
             warning = function(cond){
-              message("A model triggered a warning message:")
-              message(conditionMessage(cond))
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
             })# end tryCatch
           }
           
