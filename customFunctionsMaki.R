@@ -1242,13 +1242,13 @@ MakiCV.nlme <- function(data,
     }
     statsum <- data.frame(repetition = colnames(bs), mean = NA, sd = NA)
     for(i in 1:rept){
-      statsum$mean[i] <- mean(bs[, i])
-      statsum$sd[i] <- sd(bs[, i])
+      statsum$mean[i] <- mean(bs[, i], na.rm = TRUE)
+      statsum$sd[i] <- sd(bs[, i], na.rm = TRUE)
     }
     summarycv$statSummary <- statsum
     summarycv$cvResults <- bs
-    fullmean <- mean(t(summarycv$cvResults))
-    fullsd <- sd(t(summarycv$cvResults))
+    fullmean <- mean(t(summarycv$cvResults), na.rm = TRUE)
+    fullsd <- sd(t(summarycv$cvResults), na.rm = TRUE)
     if(fam == "binomial"){
       summarycv$summaryInfo <- paste("Over all runs, the model had a mean acuracy of ", 
                                      round((1-(fullmean*2))*100, digits = 2),
