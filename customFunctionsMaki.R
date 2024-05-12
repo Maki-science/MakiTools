@@ -930,6 +930,7 @@ MakiCV.nlme <- function(data,
         
         ##### gamm ########
         if(mod_func == "gamm"){
+          mod.cv <- NA
           # run/create model
           # I have to check whether correlations or weights are included. Otherwise the models don't work with empty parameters
           if(correlation == "none" && weights == "none"){
@@ -1067,6 +1068,7 @@ MakiCV.nlme <- function(data,
         } # end if(mod_func == "gamm")
         ##### gam ######
         if(mod_func == "gam"){
+          mod.cv <- NA
           # run model
           # run/create model
           # I have to check whether correlations or weights are included. Otherwise the models don't work with empty parameters
