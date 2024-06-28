@@ -834,11 +834,11 @@ MakiCV <- function(data, mod_func, fam="gaussian", it=1e6, k=5, rept=3, params, 
 #' for small datasets. But consider, that LOOCV is computaionally intense.
 #' 
 #' @param data a data set to operate with
-#' @param mod_func function to be used for modelling. Currently possible model functions are: mgcv::gamm, mgcv::gam
+#' @param mod_func function to be used for modelling. Currently possible model functions are: mgcv::gamm, mgcv::gam, nlme::gls, nlme::lme
 #' @param fam family to be used for the model (has to be provided as used in model function)
 #' @param k determine k-fold cross validation (in how many parts the data set should be splitted)
 #' @param rept repetitions for the k-fold cross validation
-#' @param params.fixed parameterisation of fixed terms (including smooths) and random effects in case of lme4 models (except gamm4)
+#' @param params.fixed parameterisation of fixed terms (including smooths)
 #' @param params.rdm random terms, for nlme models (have to be provided as for model function necessary)
 #' @param it number of max iterations (for maxfun)
 #' @param response response variable for prediction
@@ -1188,37 +1188,248 @@ MakiCV.nlme <- function(data,
             # RSME = sqrt(mean((fitted-observed)^2))
             bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
           }  
-        } # end if(mod_func == "gam")  
-        ##### lm or glm ######
-        if(mod_func == "glm" || mod_func == "lm"){
+        } # end if(mod_func == "gam") 
+        
+        ##### gls ######
+        if(mod_func == "gls"){
+          mod.cv <- NA
           # run model
-          if(fam == "gaussian" || mod_func == "lm"){
-            mod.cv <- lm(paramFixed,
-                         data = moddata,
-                         control = list(maxit = it, epsilon=1))
+          # run/create model
+          # I have to check whether correlations or weights are included. Otherwise the models don't work with empty parameters
+          if(correlation == "none" && weights == "none"){
+            # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
+            # Additonally, a warning message will be send out to the user.
+            tryCatch({
+              suppressMessages({
+                mod.cv <- nlme::gls(params.fixed,
+                                    data = moddata 
+                                    #control=nlme::gls.control(maxit = it)
+                                    )
+              })
+            },
+            error = function(cond){
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
+            },
+            warning = function(cond){
+              warning("The model triggered a warning message:")
+              warning(conditionMessage(cond))
+            })# end tryCatch
           }
-          else{
-            mod.cv <- glm(paramFixed,
-                          data = moddata, family = fam,
-                          control = list(maxit = it, epsilon=1))
+          else if(correlation != "none" && weights == "none"){
+            # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
+            # Additonally, a warning message will be send out to the user.
+            tryCatch({
+              suppressMessages({
+                mod.cv <- nlme::gls(params.fixed,
+                                    data = moddata, 
+                                    correlation = correlation
+                                    #control=mgcv::gam.control(maxit = it)
+                                    )
+              })
+            },
+            error = function(cond){
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
+            },
+            warning = function(cond){
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
+            })# end tryCatch
           }
+          else if(correlation == "none" && weights != "none"){
+            # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
+            # Additonally, a warning message will be send out to the user.
+            tryCatch({
+              suppressMessages({
+                mod.cv <- nlme::gls(params.fixed,
+                                    data = moddata, 
+                                    weights = weights
+                                    #control=mgcv::gam.control(maxit = it)
+                                    )
+              })
+            },
+            error = function(cond){
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
+            },
+            warning = function(cond){
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
+            })# end tryCatch
+          }
+          else{ # correlation and weights != FALSE
+            # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
+            # Additonally, a warning message will be send out to the user.
+            tryCatch({
+              suppressMessages({
+                mod.cv <- nlme::gls(params.fixed,
+                                    data = moddata,
+                                    weights = weights,
+                                    correlation = correlation
+                                    #control=mgcv::gam.control(maxit = it)
+                                    )
+              })
+            },
+            error = function(cond){
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
+            },
+            warning = function(cond){
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
+            })# end tryCatch
+          }
+          
           # make prediction with this model, but with the leftover data set
           testdata <- data[obj$samples[,i],]
-          cat("predict")
-          fit.cv = predict(mod.cv, newdata = testdata, allow.new.levels = TRUE, type = 'response', se.fit = FALSE)
+          #cat("predict")
+          # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
+          # Additonally, a warning message will be send out to the user.
+          tryCatch({
+            suppressMessages(
+              fit.cv = predict(mod.cv, newdata = testdata, allow.new.levels = TRUE, type = 'response', se.fit = FALSE)
+            )
+          },
+          error = function(cond){
+            warning("A prediction triggered an error:")
+            warning(cond)
+            fit.cv <- rep(NA, nrow(testdata))
+          },
+          warning = function(cond){
+            warning("A prediction triggered a warning message:")
+            warning(cond)
+          })# end tryCatch
           
           #### calculate and gather scores for k-folds #####
-          if(fam == "binomial"){ # if binomial, calculate Brier score
-            # calculate Brier score Brier score for this prediction 
-            # Bier score = mean((pred.prob-event_success_bin)^2)
-            # following https://stackoverflow.com/questions/25149023/how-to-find-the-brier-score-of-a-logistic-regression-model-in-r
-            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2))
+          # calculate RMSE (family is not applicable for nlme models)
+          # RSME = sqrt(mean((fitted-observed)^2))
+          bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
+            
+        } # end if(mod_func == "gls")  
+        
+        ##### lme ######
+        if(mod_func == "lme"){
+          mod.cv <- NA
+          # run model
+          # run/create model
+          # I have to check whether correlations or weights are included. Otherwise the models don't work with empty parameters
+          if(correlation == "none" && weights == "none"){
+            # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
+            # Additonally, a warning message will be send out to the user.
+            tryCatch({
+              suppressMessages({
+                mod.cv <- nlme::lme(params.fixed,
+                                    random = params.rdm,
+                                    data = moddata 
+                                    #control=nlme::gls.control(maxit = it)
+                )
+              })
+            },
+            error = function(cond){
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
+            },
+            warning = function(cond){
+              warning("The model triggered a warning message:")
+              warning(conditionMessage(cond))
+            })# end tryCatch
           }
-          else{ # else calculate RMSE
-            # RSME = sqrt(mean((fitted-observed)^2))
-            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
-          }  
-        } # end if(mod_func == "glmer" || mod_func == "lmer")  
+          else if(correlation != "none" && weights == "none"){
+            # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
+            # Additonally, a warning message will be send out to the user.
+            tryCatch({
+              suppressMessages({
+                mod.cv <- nlme::lme(params.fixed,
+                                    random = params.rdm,
+                                    data = moddata, 
+                                    correlation = correlation
+                                    #control=mgcv::gam.control(maxit = it)
+                )
+              })
+            },
+            error = function(cond){
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
+            },
+            warning = function(cond){
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
+            })# end tryCatch
+          }
+          else if(correlation == "none" && weights != "none"){
+            # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
+            # Additonally, a warning message will be send out to the user.
+            tryCatch({
+              suppressMessages({
+                mod.cv <- nlme::lme(params.fixed,
+                                    random = params.rdm,
+                                    data = moddata, 
+                                    weights = weights
+                                    #control=mgcv::gam.control(maxit = it)
+                )
+              })
+            },
+            error = function(cond){
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
+            },
+            warning = function(cond){
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
+            })# end tryCatch
+          }
+          else{ # correlation and weights != FALSE
+            # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
+            # Additonally, a warning message will be send out to the user.
+            tryCatch({
+              suppressMessages({
+                mod.cv <- nlme::lme(params.fixed,
+                                    random = params.rdm,
+                                    data = moddata,
+                                    weights = weights,
+                                    correlation = correlation
+                                    #control=mgcv::gam.control(maxit = it)
+                )
+              })
+            },
+            error = function(cond){
+              warning("A model did not converge or caused an error:")
+              warning(conditionMessage(cond))
+            },
+            warning = function(cond){
+              warning("A model triggered a warning message:")
+              warning(conditionMessage(cond))
+            })# end tryCatch
+          }
+          
+          # make prediction with this model, but with the leftover data set
+          testdata <- data[obj$samples[,i],]
+          #cat("predict")
+          # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
+          # Additonally, a warning message will be send out to the user.
+          tryCatch({
+            suppressMessages(
+              fit.cv = predict(mod.cv, newdata = testdata, allow.new.levels = TRUE, type = 'response', se.fit = FALSE)
+            )
+          },
+          error = function(cond){
+            warning("A prediction triggered an error:")
+            warning(cond)
+            fit.cv <- rep(NA, nrow(testdata))
+          },
+          warning = function(cond){
+            warning("A prediction triggered a warning message:")
+            warning(cond)
+          })# end tryCatch
+          
+          #### calculate and gather scores for k-folds #####
+          # calculate RMSE (family is not applicable for nlme models)
+          # RSME = sqrt(mean((fitted-observed)^2))
+          bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
+          
+        } # end if(mod_func == "lme")  
+        
       }# end i
       
       ### gather values of rept ####  
