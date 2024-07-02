@@ -871,8 +871,8 @@ MakiCV.nlme <- function(data,
   # currently possible: gamm4, glmer
   
   # check whether selected function can be performed
-  if(#mod_func == "lme" || 
-    #mod_func == "gls" || 
+  if(mod_func == "lme" || 
+    mod_func == "gls" || 
     mod_func == "gam" || 
     mod_func == "gamm"
   ){
