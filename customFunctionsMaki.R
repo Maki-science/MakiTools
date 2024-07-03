@@ -843,7 +843,8 @@ MakiCV <- function(data, mod_func, fam="gaussian", it=1e6, k=5, rept=3, params, 
 #' @param it number of max iterations (for maxfun)
 #' @param response response variable for prediction
 #' @param correlation provide the formula for correlation structure here. Defaults to "none" (FALSE is not detected correctly).
-#' @param weights provide the formula for variance structure here. Defaults to "none" (FALSE is not detected correctly).
+#' @param weights provide the formula for variance structure here as string (in quotes "" - don't ask me why it behaves differently than correlation). 
+#' Defaults to "none" (FALSE is not detected correctly). 
 #' @param setseed whether to set a seed or not. If T, outcome will be reproducible. Else sampling is random each time. Defaults to F.
 #' 
 #' @return returns an object with summary and score values of each model run and cross check
@@ -1295,9 +1296,9 @@ MakiCV.nlme <- function(data,
           # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
           # Additonally, a warning message will be send out to the user.
           tryCatch({
-            suppressMessages(
+            #suppressMessages(
               fit.cv = predict(mod.cv, newdata = testdata, allow.new.levels = TRUE, type = 'response', se.fit = FALSE)
-            )
+            #)
           },
           error = function(cond){
             warning("A prediction triggered an error:")
