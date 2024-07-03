@@ -1061,11 +1061,11 @@ MakiCV.nlme <- function(data,
             # calculate Brier score Brier score for this prediction 
             # Bier score = mean((pred.prob-event_success_bin)^2)
             # following https://stackoverflow.com/questions/25149023/how-to-find-the-brier-score-of-a-logistic-regression-model-in-r
-            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE))
+            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE, na.rm = TRUE))
           }
           else{ # else calculate RMSE
             # RSME = sqrt(mean((fitted-observed)^2))
-            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE)))
+            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE, na.rm = TRUE)))
           }  
           
         } # end if(mod_func == "gamm")
@@ -1187,11 +1187,11 @@ MakiCV.nlme <- function(data,
             # calculate Brier score Brier score for this prediction 
             # Bier score = mean((pred.prob-event_success_bin)^2)
             # following https://stackoverflow.com/questions/25149023/how-to-find-the-brier-score-of-a-logistic-regression-model-in-r
-            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2))
+            bsrep <- c(bsrep, mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE))
           }
           else{ # else calculate RMSE
             # RSME = sqrt(mean((fitted-observed)^2))
-            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
+            bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE)))
           }  
         } # end if(mod_func == "gam") 
         
@@ -1313,7 +1313,7 @@ MakiCV.nlme <- function(data,
           #### calculate and gather scores for k-folds #####
           # calculate RMSE (family is not applicable for nlme models)
           # RSME = sqrt(mean((fitted-observed)^2))
-          bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
+          bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE)))
             
         } # end if(mod_func == "gls")  
         
@@ -1437,7 +1437,7 @@ MakiCV.nlme <- function(data,
           #### calculate and gather scores for k-folds #####
           # calculate RMSE (family is not applicable for nlme models)
           # RSME = sqrt(mean((fitted-observed)^2))
-          bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2)))
+          bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE)))
           
         } # end if(mod_func == "lme")  
         
