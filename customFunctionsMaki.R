@@ -991,7 +991,8 @@ MakiCV.nlme <- function(data,
                                      data = moddata, 
                                      family = fam, 
                                      #method = "REML",
-                                     weights = weights,
+                                     weights = eval(parse(text = weights)),
+                                     na.action = na.exclude,
                                      control=mgcv::gam.control(maxit = it))
               })
             },
@@ -1015,8 +1016,9 @@ MakiCV.nlme <- function(data,
                                      data = moddata, 
                                      family = fam, 
                                      #method = "REML",
-                                     weights = weights,
+                                     weights = eval(parse(text = weights)),
                                      correlation = correlation,
+                                     na.action = na.exclude,
                                      control=mgcv::gam.control(maxit = it))
               })
             },
@@ -1121,7 +1123,8 @@ MakiCV.nlme <- function(data,
                 mod.cv <- mgcv::gam(params.fixed,
                                     data = moddata, 
                                     family = fam, 
-                                    weights = weights,
+                                    weights = eval(parse(text = weights)),
+                                    na.action = na.exclude,
                                     control=mgcv::gam.control(maxit = it))
               })
             },
@@ -1142,8 +1145,9 @@ MakiCV.nlme <- function(data,
                 mod.cv <- mgcv::gam(params.fixed,
                                     data = moddata, 
                                     family = fam, 
-                                    weights = weights,
+                                    weights = eval(parse(text = weights)),
                                     correlation = correlation,
+                                    na.action = na.exclude,
                                     control=mgcv::gam.control(maxit = it))
               })
             },
@@ -1202,7 +1206,8 @@ MakiCV.nlme <- function(data,
             tryCatch({
               suppressMessages({
                 mod.cv <- nlme::gls(params.fixed,
-                                    data = moddata 
+                                    data = moddata,
+                                    na.action = na.exclude
                                     #control=nlme::gls.control(maxit = it)
                                     )
               })
@@ -1223,7 +1228,8 @@ MakiCV.nlme <- function(data,
               suppressMessages({
                 mod.cv <- nlme::gls(params.fixed,
                                     data = moddata, 
-                                    correlation = correlation
+                                    correlation = correlation,
+                                    na.action = na.exclude
                                     #control=mgcv::gam.control(maxit = it)
                                     )
               })
@@ -1244,7 +1250,8 @@ MakiCV.nlme <- function(data,
               suppressMessages({
                 mod.cv <- nlme::gls(params.fixed,
                                     data = moddata, 
-                                    weights = weights
+                                    weights = eval(parse(text = weights)),
+                                    na.action = na.exclude
                                     #control=mgcv::gam.control(maxit = it)
                                     )
               })
@@ -1265,8 +1272,9 @@ MakiCV.nlme <- function(data,
               suppressMessages({
                 mod.cv <- nlme::gls(params.fixed,
                                     data = moddata,
-                                    weights = weights,
-                                    correlation = correlation
+                                    weights = eval(parse(text = weights)),
+                                    correlation = correlation,
+                                    na.action = na.exclude
                                     #control=mgcv::gam.control(maxit = it)
                                     )
               })
@@ -1365,7 +1373,8 @@ MakiCV.nlme <- function(data,
                 mod.cv <- nlme::lme(params.fixed,
                                     random = params.rdm,
                                     data = moddata, 
-                                    weights = weights
+                                    weights = eval(parse(text = weights)),
+                                    na.action = na.exclude
                                     #control=mgcv::gam.control(maxit = it)
                 )
               })
@@ -1387,8 +1396,9 @@ MakiCV.nlme <- function(data,
                 mod.cv <- nlme::lme(params.fixed,
                                     random = params.rdm,
                                     data = moddata,
-                                    weights = weights,
-                                    correlation = correlation
+                                    weights = eval(parse(text = weights)),
+                                    correlation = correlation,
+                                    na.action = na.exclude
                                     #control=mgcv::gam.control(maxit = it)
                 )
               })
