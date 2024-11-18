@@ -1748,7 +1748,6 @@ newD <- expand.grid(Cholc = Cholc,
 #' progressBar
 #' @description
 #' This function reports the progress of a certain execution (e.g. a for loop) to the console.
-#' The console will be cleared before each new output (maybe I find a better solution).
 #' Inspired by https://stackoverflow.com/questions/21886682/is-there-a-way-to-update-existing-text-in-the-r-console
 #'
 #' @param x The value of current step
@@ -1761,12 +1760,13 @@ newD <- expand.grid(Cholc = Cholc,
 #'
 progressBar <- function(x, max = 100) {
   progress <- x / max * 100
-  cat("\014") # clear console
   cat(sprintf('\r[%-50s] %g%%',
               paste(rep('=', progress / 2), collapse = ''),
               round(progress, digits = 2)
-              )
+              ),
+      "\r"
       )
+  flush.console()
   if (x == max)
     cat('\n')
 }
