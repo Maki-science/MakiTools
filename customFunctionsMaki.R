@@ -1762,7 +1762,8 @@ progressBar <- function(x, max = 100) {
   progress <- x / max * 100
   cat(sprintf('\r[%-50s] %g%%',
               paste(rep('=', progress / 2), collapse = ''),
-              round(progress, digits = 2)
+              round(progress, digits = 2),
+              "         "
               ),
       "\r"
       )
