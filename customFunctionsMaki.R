@@ -1080,7 +1080,7 @@ MakiCV.nlme <- function(data,
             # Additonally, a warning message will be send out to the user.
             tryCatch({
               suppressMessages({
-                mod.cv <- mgcv::gam(params.fixed,
+                mod.cv <- mgcv::gam(eval(parse(text = params.fixed)),
                                     data = moddata, 
                                     family = fam, 
                                     control=mgcv::gam.control(maxit = it))
@@ -1100,7 +1100,7 @@ MakiCV.nlme <- function(data,
             # Additonally, a warning message will be send out to the user.
             tryCatch({
               suppressMessages({
-                mod.cv <- mgcv::gam(params.fixed,
+                mod.cv <- mgcv::gam(eval(parse(text = params.fixed)),
                                     data = moddata, 
                                     family = fam, 
                                     correlation = correlation,
@@ -1121,7 +1121,7 @@ MakiCV.nlme <- function(data,
             # Additonally, a warning message will be send out to the user.
             tryCatch({
               suppressMessages({
-                mod.cv <- mgcv::gam(params.fixed,
+                mod.cv <- mgcv::gam(eval(parse(text = params.fixed)),
                                     data = moddata, 
                                     family = fam, 
                                     weights = eval(parse(text = weights)),
@@ -1143,7 +1143,7 @@ MakiCV.nlme <- function(data,
             # Additonally, a warning message will be send out to the user.
             tryCatch({
               suppressMessages({
-                mod.cv <- mgcv::gam(params.fixed,
+                mod.cv <- mgcv::gam(eval(parse(text = params.fixed)),
                                     data = moddata, 
                                     family = fam, 
                                     weights = eval(parse(text = weights)),
