@@ -1168,9 +1168,9 @@ MakiCV.nlme <- function(data,
           # use tryCatch to catch the case of no convergence etc. An NA should be returned then, so we can still calculate an MRSE
           # Additonally, a warning message will be send out to the user.
           tryCatch({
-            suppressMessages(
+            #suppressMessages(
               fit.cv = predict(mod.cv, newdata = testdata, allow.new.levels = TRUE, type = 'response', se.fit = FALSE)
-            )
+            #)
           },
           error = function(cond){
             warning("A prediction triggered an error:")
