@@ -623,6 +623,7 @@ MakiCV <- function(data, mod_func, fam="gaussian", it=1e6, k=5, rept=3, params, 
      mod_func == "lm" || mod_func == "glm"){
   # data frame to store scores after model creation and prediction
     bs <- data.frame(x = NA)
+    bs.dir <- data.frame(x = NA)
     # get the full data set line numbers in a vector
     datafull <- sample(nrow(data), nrow(data))
     
@@ -662,6 +663,7 @@ MakiCV <- function(data, mod_func, fam="gaussian", it=1e6, k=5, rept=3, params, 
       
       # add a column for current repetition to bs
       bsrep <- c() 
+      bsrep.dir <- c()
       
       #### iteration over k models
       # iterate over k, create a model using k-1 subsamples and predict with the left subsample to calculate Brier score
@@ -1192,6 +1194,8 @@ MakiCV.nlme <- function(data,
           else{ # else calculate RMSE
             # RSME = sqrt(mean((fitted-observed)^2))
             bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE)))
+            # including direction
+            bsrep.dir <- c(bsrep.dir, mean(fit.cv - unlist(data[obj$samples[,i],][, response]), na.rm = TRUE))
           }  
         } # end if(mod_func == "gam") 
         
@@ -1447,6 +1451,8 @@ MakiCV.nlme <- function(data,
       # bind values together in data frame and rename added column
       bs <- cbind(bs, bsrep)
       colnames(bs)[which(colnames(bs) == "bsrep")] <- c(paste("rep", h, sep=""))
+      bs.dir <- cbind(bs.dir, bsrep.dir)
+      colnames(bs.dir)[which(colnames(bs.dir) == "bsrep.dir")] <- c(paste("rep", h, sep=""))
       
     }# end h
     
@@ -1467,6 +1473,12 @@ MakiCV.nlme <- function(data,
       statsum$mean[i] <- mean(bs[, i], na.rm = TRUE)
       statsum$sd[i] <- sd(bs[, i], na.rm = TRUE)
     }
+    statsum.dir <- data.frame(repetition = colnames(bs.dir), mean = NA, sd = NA)
+    for(i in 1:rept){
+      statsum.dir$mean[i] <- mean(bs.dir[, i], na.rm = TRUE)
+      statsum.dir$sd[i] <- sd(bs.dir[, i], na.rm = TRUE)
+    }
+    
     summarycv$statSummary <- statsum
     summarycv$cvResults <- bs
     fullmean <- mean(t(summarycv$cvResults), na.rm = TRUE)
@@ -1488,6 +1500,10 @@ MakiCV.nlme <- function(data,
                                      round(fullmean, digits = 4),
                                      " and a standard deviation of RMSE of ",
                                      round(fullsd, digits = 4),
+                                     "(",
+                                     round(mean(t(bs.dir), digits = 4)),
+                                     " +/- ",
+                                     round(sd(t(bs.dir), digits = 4)),
                                      ")",
                                      sep="")
     }
