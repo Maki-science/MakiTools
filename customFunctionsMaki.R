@@ -1457,6 +1457,7 @@ MakiCV.nlme <- function(data,
     }# end h
     
     bs$x <- NULL
+    bs.dir$x <- NULL
     
     ##### create an object summarizing the performed CV and values #####
     summarycv <- list()
@@ -1473,11 +1474,11 @@ MakiCV.nlme <- function(data,
       statsum$mean[i] <- mean(bs[, i], na.rm = TRUE)
       statsum$sd[i] <- sd(bs[, i], na.rm = TRUE)
     }
-    statsum.dir <- data.frame(repetition = colnames(bs.dir), mean = NA, sd = NA)
-    for(i in 1:rept){
-      statsum.dir$mean[i] <- mean(bs.dir[, i], na.rm = TRUE)
-      statsum.dir$sd[i] <- sd(bs.dir[, i], na.rm = TRUE)
-    }
+    # statsum.dir <- data.frame(repetition = colnames(bs.dir), mean = NA, sd = NA)
+    # for(i in 1:rept){
+    #   statsum.dir$mean[i] <- mean(bs.dir[, i], na.rm = TRUE)
+    #   statsum.dir$sd[i] <- sd(bs.dir[, i], na.rm = TRUE)
+    # }
     
     summarycv$statSummary <- statsum
     summarycv$cvResults <- bs
