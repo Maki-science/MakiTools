@@ -1070,6 +1070,8 @@ MakiCV.nlme <- function(data,
           else{ # else calculate RMSE
             # RSME = sqrt(mean((fitted-observed)^2))
             bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE)))
+            # including direction
+            bsrep.dir <- c(bsrep.dir, mean(fit.cv - unlist(data[obj$samples[,i],][, response]), na.rm = TRUE))
           }  
           
         } # end if(mod_func == "gamm")
@@ -1320,7 +1322,9 @@ MakiCV.nlme <- function(data,
           # calculate RMSE (family is not applicable for nlme models)
           # RSME = sqrt(mean((fitted-observed)^2))
           bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE)))
-            
+          # including direction
+          bsrep.dir <- c(bsrep.dir, mean(fit.cv - unlist(data[obj$samples[,i],][, response]), na.rm = TRUE))
+          
         } # end if(mod_func == "gls")  
         
         ##### lme ######
@@ -1444,6 +1448,8 @@ MakiCV.nlme <- function(data,
           # calculate RMSE (family is not applicable for nlme models)
           # RSME = sqrt(mean((fitted-observed)^2))
           bsrep <- c(bsrep, sqrt(mean((fit.cv - unlist(data[obj$samples[,i],][, response]))^2, na.rm = TRUE)))
+          # including direction
+          bsrep.dir <- c(bsrep.dir, mean(fit.cv - unlist(data[obj$samples[,i],][, response]), na.rm = TRUE))
           
         } # end if(mod_func == "lme")  
         
@@ -1503,9 +1509,9 @@ MakiCV.nlme <- function(data,
                                      round(fullmean, digits = 4),
                                      " and a standard deviation of RMSE of ",
                                      round(fullsd, digits = 4),
-                                     "(",
+                                     " (Signed value:",
                                      round(mean(t(bs.dir)), digits = 4),
-                                     " +/- ",
+                                     "+/-",
                                      round(sd(t(bs.dir)), digits = 4),
                                      ")",
                                      sep="")
