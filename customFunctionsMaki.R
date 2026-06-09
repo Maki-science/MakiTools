@@ -1504,9 +1504,9 @@ MakiCV.nlme <- function(data,
                                      " and a standard deviation of RMSE of ",
                                      round(fullsd, digits = 4),
                                      "(",
-                                     round(mean(t(bs.dir), digits = 4)),
+                                     round(mean(t(bs.dir)), digits = 4),
                                      " +/- ",
-                                     round(sd(t(bs.dir), digits = 4)),
+                                     round(sd(t(bs.dir)), digits = 4),
                                      ")",
                                      sep="")
     }
