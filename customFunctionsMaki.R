@@ -881,6 +881,7 @@ MakiCV.nlme <- function(data,
   ){
     # data frame to store scores after model creation and prediction
     bs <- data.frame(x = NA)
+    bs.dir <- data.frame(x = NA)
     # get the full data set line numbers in a vector
     datafull <- sample(nrow(data), nrow(data))
     
@@ -920,6 +921,7 @@ MakiCV.nlme <- function(data,
       
       # add a column for current repetition to bs
       bsrep <- c() 
+      bsrep.dir <- c() 
       
       #### iteration over k models
       # iterate over k, create a model using k-1 subsamples and predict with the left subsample to calculate Brier score
